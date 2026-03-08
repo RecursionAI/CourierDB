@@ -1,33 +1,28 @@
-# Use an official lightweight Python image
 FROM python:3.11-slim
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Prevent Python from writing pyc files to disc
 ENV PYTHONDONTWRITEBYTECODE=1
-# Prevent Python from buffering stdout and stderr
 ENV PYTHONUNBUFFERED=1
+ENV UV_LINK_MODE=copy
 
-# Install system dependencies (build tools often needed for numpy/lmdb)
+# Install system build deps and uv.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
 
-# Copy the requirements file first (for better caching)
-COPY requirements.txt .
+# Install dependencies from lockfile first for layer caching.
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application code
+# Copy project files and install the project package itself.
 COPY . .
+RUN uv sync --frozen --no-dev
 
-# Expose the port the app runs on
 EXPOSE 8000
-
-# Define the volume where data will persist
 VOLUME /app/flow_data
 
-# The command to run the server
-CMD ["python", "-m", "courierdb.server.app"]
+CMD ["uv", "run", "python", "-m", "courierdb.server.app"]
