@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "courierdb"
-version = "0.2.1"
+version = "0.2.2"
 description = "The AI-Native Database: JSON + Vectors + MCP"
 readme = "README.md"
 requires-python = ">=3.11"
