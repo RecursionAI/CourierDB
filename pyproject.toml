@@ -25,7 +25,6 @@ dependencies = [
     "pydantic==2.12.5",
     "lmdb==1.7.5",
     "usearch==2.21.0",
-    "numpy==2.3.5",
     "requests==2.32.5",
     "fastmcp==2.13.3",
     "python-dotenv==1.2.1",
