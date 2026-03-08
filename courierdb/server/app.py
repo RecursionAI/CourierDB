@@ -226,7 +226,13 @@ app.mount("/mcp", mcp_asgi)
 
 
 def start():
-    uvicorn.run("courierdb.server.app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "courierdb.server.app:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        ws="websockets-sansio",
+    )
 
 
 if __name__ == "__main__":

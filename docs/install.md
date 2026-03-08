@@ -42,6 +42,9 @@ For running the server locally simply run:
 courierdb start
 ```
 
+CourierDB defaults to Uvicorn's `websockets-sansio` backend to avoid legacy `websockets` deprecation warnings.
+If needed, override via `courierdb start --ws auto|none|websockets|websockets-sansio|wsproto`.
+
 For production navigate to the root CourierDB directory and run:
 
 ```bash

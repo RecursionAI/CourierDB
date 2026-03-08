@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# IDE
+.idea
+
 # Distribution / packaging
 .Python
 build/
@@ -121,6 +124,8 @@ ipython_config.py
 # Data
 flow_data
 ./flow_data
+courier_data
+./courier_data
 
 # pixi
 #   Similar to Pipfile.lock, it is generally recommended to include pixi.lock in version control.
