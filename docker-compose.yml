@@ -10,7 +10,6 @@ services:
       - ./flow_data:/app/flow_data
     environment:
       - COURIERDB_PATH=/app/flow_data
-      - COURIERDB_VECTORIZER=openai
-      # Pass your key safely (it reads from your local .env file)
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # Optional: set this in your .env to enable API-key auth
+      - COURIERDB_API_KEY=${COURIERDB_API_KEY}
     restart: unless-stopped

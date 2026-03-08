@@ -1,55 +1,51 @@
+## Installation
 
-### Installation
-
-#### Client SDK:
+### Client SDK
 
 ```bash
 pip install courierdb
 ```
 
-#### Server:
-git clone the repo to spin up your local dev server or production dockerized server.
+### Server
 
------
+Clone the repo and run locally or with Docker.
 
-### Configuration
+## Configuration
 
-CourierDB is configured via a `.env` file in your project root or via Environment Variables.
+CourierDB reads configuration from `.env` (or environment variables).
 
-This is where you set your OpenAI API key for auto-vectorization and your CourierDB API key for database protection.
+Supported variables:
 
-| Variable            | Description                                            | Required? | Default              |
-|:--------------------|:-------------------------------------------------------|:----------|:---------------------|
-| `OPENAI_API_KEY`    | Your OpenAI Key for auto-vectorization.                | **Yes**   | `None`               |
-| `COURIERDB_API_KEY`    | Secures the DB. If set, clients must provide this key. | No        | `None` (Open Access) |
-| `COURIERDB_PATH`       | Where data files are stored on disk.                   | No        | `./flow_data`        |
-| `COURIERDB_VECTORIZER` | Provider to use (`openai` or `mock`).                  | No        | `auto`               |
+| Variable | Description | Required? | Default |
+|:--|:--|:--|:--|
+| `COURIERDB_PATH` | Where data files are stored on disk. | No | `./flow_data` |
+| `COURIERDB_API_KEY` | If set, all API requests must provide this key. | No | `None` (open access) |
 
-**Example `.env` file:**
+Example `.env`:
 
 ```ini
-OPENAI_API_KEY = sk-proj-12345...
-COURIERDB_API_KEY = my-super-secret-password
-COURIERDB_PATH = ./my_db_storage
-COURIERDB_VECTORIZER = openai
+# COURIERDB Configuration
+COURIERDB_PATH=./flow_data
+
+# Keys
+COURIERDB_API_KEY=fdb-45hg8b4-ivob4v3vb4
 ```
 
------
-
-For running the server locally simply run:
+## Run Locally
 
 ```bash
 courierdb start
 ```
 
-CourierDB defaults to Uvicorn's `websockets-sansio` backend to avoid legacy `websockets` deprecation warnings.
-If needed, override via `courierdb start --ws auto|none|websockets|websockets-sansio|wsproto`.
+CourierDB defaults to Uvicorn's `websockets-sansio` backend.
+You can override with `courierdb start --ws auto|none|websockets|websockets-sansio|wsproto`.
 
-For production navigate to the root CourierDB directory and run:
+## Run with Docker
+
+From repo root:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-This creates an API on port 8000 ready for reads and writes. The client SDK will automaticlaly read and write to this
-port. If using API key configure a COURIERDB_API_KEY in your `.env` file and the client SDK should just work.
+This starts the API on port `8000` and persists data in `./flow_data`.

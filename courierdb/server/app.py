@@ -1,14 +1,13 @@
 import os
 import base64
-import binascii
-import numpy as np
 import uvicorn
 from contextlib import asynccontextmanager
-from typing import Dict, Any, List, Optional
-from fastapi import FastAPI, HTTPException, Body, Request, Response
-from pydantic import BaseModel
+from typing import Any, Dict, Optional
+
+from fastapi import FastAPI, HTTPException
 from fastmcp import FastMCP
 from dotenv import load_dotenv
+from pydantic import BaseModel, ConfigDict
 
 from courierdb.core.engine import CourierDB
 
@@ -99,9 +98,9 @@ app.add_middleware(SecurityMiddleware)
 
 
 class GenericRecord(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     id: str
     data: Dict[str, Any]
-    vector: Optional[List[float]] = None
 
 
 def get_db():
@@ -113,8 +112,7 @@ def get_db():
 @app.post("/v1/{collection_name}/upsert")
 def rest_put(collection_name: str, payload: GenericRecord):
     col = get_db().collection(collection_name, GenericRecord)
-    vec = np.array(payload.vector, dtype=np.float32) if payload.vector else None
-    col.upsert(payload.id, payload, vector=vec)
+    col.upsert(payload.id, payload)
     return {"status": "success", "id": payload.id}
 
 
@@ -130,21 +128,6 @@ def rest_get(collection_name: str, key: str):
 def rest_list(collection_name: str, limit: int = 20, skip: int = 0):
     col = get_db().collection(collection_name, GenericRecord)
     return col.list(limit=limit, skip=skip)
-
-
-class SearchRequest(BaseModel):
-    query_text: Optional[str] = None
-    vector: Optional[List[float]] = None
-    limit: int = 5
-
-
-@app.post("/v1/{collection_name}/search")
-def rest_search(collection_name: str, payload: SearchRequest):
-    col = get_db().collection(collection_name, GenericRecord)
-    
-    vec = np.array(payload.vector, dtype=np.float32) if payload.vector else None
-    results = col.search(vector=vec, query_text=payload.query_text, limit=payload.limit)
-    return [item.model_dump() for item in results]
 
 
 @app.delete("/v1/{collection_name}/delete/{key}")
@@ -167,12 +150,11 @@ mcp_asgi = mcp.http_app(path="/", transport="http")
 
 
 @mcp.tool()
-def courierdb_upsert(collection: str, key: str, data: Dict[str, Any], vector: List[float] = None):
+def courierdb_upsert(collection: str, key: str, data: Dict[str, Any]):
     """Create or Update a record in the database."""
     col = db_instance.collection(collection, GenericRecord)
-    record = GenericRecord(id=key, data=data, vector=vector)
-    vec_np = np.array(vector, dtype=np.float32) if vector else None
-    col.upsert(key, record, vector=vec_np)
+    record = GenericRecord(id=key, data=data)
+    col.upsert(key, record)
     return f"Successfully saved record {key} to collection {collection}"
 
 
@@ -183,15 +165,6 @@ def courierdb_read(collection: str, key: str) -> str:
     res = col.read(key)
     if not res: return "Error: Record not found."
     return str(res.data)
-
-
-@mcp.tool()
-def courierdb_search(collection: str, query: str) -> str:
-    """Semantic search. Finds records by meaning."""
-    col = db_instance.collection(collection, GenericRecord)
-    results = col.search(query_text=query, limit=3)
-    summary = [f"ID: {r.id} | Data: {r.data}" for r in results]
-    return "\n".join(summary)
 
 
 @mcp.tool()

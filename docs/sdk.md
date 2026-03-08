@@ -1,25 +1,22 @@
 ## Client SDK
 
-CourierDB comes with a Python Client SDK. It feels like using a local dictionary, but it talks to your high-performance
-server.
+CourierDB includes a Python SDK for typed CRUD access.
 
-### 1\. Initialize the db
+### 1. Initialize
 
 ```python
 from courierdb import CourierDB
 from pydantic import BaseModel
 
-# Connects to localhost:8000 by default
+# Connects to http://localhost:8000 by default
 # Reads COURIERDB_API_KEY from env automatically if present
 db = CourierDB()
 
-# Or connect to a remote production server
+# Or connect to remote
 # db = CourierDB(url="http://164.x.x.x:8000", api_key="secret")
 ```
 
-### 2\. Define Data Model
-
-CourierDB uses **Pydantic** to validate your data on read/write.
+### 2. Define a model
 
 ```python
 class Ticket(BaseModel):
@@ -29,16 +26,11 @@ class Ticket(BaseModel):
     description: str
 ```
 
-### 3\. Upsert (Write)
-
-This saves the JSON **AND** automatically generates a vector embedding for the `description` and `title`.
+### 3. Upsert (Create/Update)
 
 ```python
-# tickets is a CourierDB collection of Ticket objects
-# It acts like a local dictionary and allows you to use props on the object
 tickets = db.collection("tickets", Ticket)
 
-# Upsert (Insert or Update)
 new_ticket = Ticket(
     id="t-100",
     title="Login Broken",
@@ -46,36 +38,29 @@ new_ticket = Ticket(
     description="User cannot reset password on mobile."
 )
 
-# Upsert writes the data, either replacing existing content with the same id or creating a new object
 tickets.upsert(new_ticket)
 ```
 
-### 4\. Semantic Search (RAG)
-
-Find records by *meaning*, not just keywords.
+### 4. Read/List/Delete
 
 ```python
-# Finds the ticket above because "password reset" is related to "login"
-results = tickets.search("Issues with authentication", limit=1)
+# Read by id
+item = tickets.read("t-100")
 
-print(results[0].title)
-# Output: "Login Broken"
-```
+# List with pagination
+items = tickets.list(limit=20, skip=0)
 
-### 5\. Management
-
-```python
-# Get by ID
-ticket = tickets.read("t-100")
-# Returns a Ticket object with matching ID or None
-
-# Delete
+# Delete by id
 tickets.delete("t-100")
-
-# List objects in tickets collection with pagination
-tickets.list(limit=7, skip=0)
-
-# List all collections
-print(db.list_collections())
-# Output: ['tickets', 'users']
 ```
+
+### 5. List collections
+
+```python
+print(db.list_collections())
+# Example: ['tickets', 'users']
+```
+
+## Breaking Change
+
+The SDK no longer provides semantic/vector search.

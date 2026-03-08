@@ -1,26 +1,31 @@
 ## Using the MCP server
 
-CourierDB is **MCP-Native**. This allows **Claude Desktop** to natively "see", "search", and "edit" your database without any custom glue code.
+CourierDB provides an MCP endpoint at `/mcp` (Streamable HTTP transport).
 
-**What this enables:**
-You can ask Claude: *"Check the 'tickets' collection for any high-priority bugs regarding login issues, and summarize them for me."*
+## What tools are available
 
-### Step 1: Install the Bridge Tool
+- `courierdb_upsert(collection, key, data)`
+- `courierdb_read(collection, key)`
+- `courierdb_list(collection, limit=20, skip=0)`
+- `courierdb_list_collections()`
+- `courierdb_delete(collection, key)`
 
-We use `fastmcp` to bridge Claude (Stdio) to CourierDB (HTTP).
+## Claude Desktop Setup
+
+### 1. Install bridge tool
 
 ```bash
 pip install fastmcp
 ```
 
-### Step 2: Configure Claude
+### 2. Configure Claude Desktop
 
-Edit your config file:
+Edit config file:
 
-  * **Mac:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-  * **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
-Update it like this:
+Example:
 
 ```json
 {
@@ -30,7 +35,7 @@ Update it like this:
   },
   "mcpServers": {
     "courierdb": {
-      "command": "/Users/<user>/.pyenv/shims/fastmcp", // path-to-fastmcp
+      "command": "/Users/<user>/.pyenv/shims/fastmcp",
       "args": [
         "run",
         "http://:<API_KEY>@localhost:8000/mcp"
@@ -38,10 +43,10 @@ Update it like this:
     }
   }
 }
-
-
 ```
 
-> **Note on Security:** We pass the API Key in the URL format `http://:PASSWORD@HOST` (Basic Auth style). Replace `YOUR_API_KEY` with the key from your `.env` file. If you haven't set a key (Dev Mode), use `http://localhost:8000/mcp`.
+If API key auth is disabled, use `http://localhost:8000/mcp`.
 
-> **Breaking change (v0.2.0):** CourierDB now uses Streamable HTTP MCP at `/mcp`. Legacy SSE endpoints `/mcp/sse` and `/mcp/messages` are removed.
+## Breaking Change
+
+The MCP tool `courierdb_search` was removed with vector/semantic support.

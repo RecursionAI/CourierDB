@@ -1,6 +1,6 @@
 import os
 import requests
-from typing import List, Dict, Any, Optional, Type, TypeVar, Union, Generic
+from typing import Generic, List, Optional, Type, TypeVar
 from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
@@ -20,7 +20,7 @@ class CollectionClient(Generic[T]):
     def _url(self, path: str) -> str:
         return f"{self.base_url}/v1/{self.name}/{path}"
 
-    def upsert(self, record: T, vector: Optional[List[float]] = None) -> str:
+    def upsert(self, record: T) -> str:
         if not hasattr(record, "id"):
             raise CourierDBError("Model must have an 'id' field.")
 
@@ -28,7 +28,6 @@ class CollectionClient(Generic[T]):
         payload = {
             "id": record_id,
             "data": record.model_dump(),
-            "vector": vector
         }
 
         resp = self.session.post(self._url("upsert"), json=payload)
@@ -48,24 +47,6 @@ class CollectionClient(Generic[T]):
 
         wrapper = resp.json()
         return self.model.model_validate(wrapper["data"])
-
-    def search(self, query: Union[str, List[float]], limit: int = 5) -> List[T]:
-        endpoint = self._url("search")
-        if isinstance(query, str):
-            payload = {"query_text": query, "limit": limit}
-        else:
-            payload = {"vector": list(query), "limit": limit}
-
-        resp = self.session.post(endpoint, json=payload)
-
-        if resp.status_code != 200:
-            raise CourierDBError(f"Search failed: {resp.text}")
-
-        results = []
-        for item in resp.json():
-            obj = self.model.model_validate(item["data"])
-            results.append(obj)
-        return results
 
     def list(self, limit: int = 100, skip: int = 0) -> List[T]:
         params = {"limit": limit, "skip": skip}

@@ -1,77 +1,57 @@
-# URL Schemas:
+# API Schemas
 
-CourierDB is API controlled. Here is how the URL schemas work:
-
------
-
-## Base URL:
-
-First you need to get your base url. CourierDB defaults to port 8000.
-
-If running locally your base url will look like `http://localhost:8000` or `http://0.0.0.0:8000`.
-
-If running via docker in Digital ocean you need to find your port and optionally your port alias.
-
-run `docker ps` to see your running containers.
-
-Look at the ports for the courierdb service. You should see something like `0.0.0.0-courierdb_server`. You can use either
-`0.0.0.0` or `courierdb_server` as your base url.
-**Example Base URLs:**
-
-- Local: `http://localhost:8000`
-- Docker: `http://0.0.0.0:8000` or `http://courierdb_server:8000`
-
------
+CourierDB is API-controlled. Base URL defaults to `http://localhost:8000`.
 
 ## Auth
 
-If you specified an API Key in your `.env` file you must path an Authorization header with the bearer token.
+If `COURIERDB_API_KEY` is configured, include:
 
-`{"Authorization": "Bearer {API_KEY}"}`
+```http
+Authorization: Bearer <API_KEY>
+```
 
-## API Endpoints
+## Endpoints
 
 ### Upsert
 
-**POST**: `/v1/{collection_name}/upsert`
+**POST** `/v1/{collection_name}/upsert`
 
-**JSON Body**:
+Body:
+
 ```json
 {
-  "id": "1",
-  "data": {}
+  "id": "user-1",
+  "data": {
+    "name": "Ada",
+    "role": "admin"
+  }
 }
 ```
-Your objects must have an `id` field for mapping and `data` must be a valid JSON object.
-
 
 ### Read
 
-**GET**: `/v1/{collection_name}/read/{id}`
+**GET** `/v1/{collection_name}/read/{key}`
 
-### List (with pagination)
+### List
 
-**GET**: `/v1/{collection_name}/list`
-
-### Semantic Search (RAG)
-
-**POST**: `/v1/{collection_name}/search`
-
-**BODY**:
-```json
-{
-  "query_text": "What is the capital of France?",
-  "collection_name": "countries",
-  "limit": 5,
-  "top_k": 5
-}
-```
+**GET** `/v1/{collection_name}/list?limit=20&skip=0`
 
 ### Delete
 
-**DELETE**: `/v1/{collection_name}/delete/{key}`
-
+**DELETE** `/v1/{collection_name}/delete/{key}`
 
 ### List Collections
 
-**GET**: `/v1/collections`
+**GET** `/v1/collections`
+
+Response:
+
+```json
+{
+  "collections": ["users", "tickets"]
+}
+```
+
+## Breaking Change
+
+`POST /v1/{collection_name}/search` was removed.
